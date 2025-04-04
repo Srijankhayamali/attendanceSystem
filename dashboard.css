@@ -1,0 +1,12 @@
+/* Dashboard specific styles */
+.attendance-form {
+  margin-top: 20px;
+}
+
+.status-present {
+  color: green;
+}
+
+.status-absent {
+  color: red;
+}
