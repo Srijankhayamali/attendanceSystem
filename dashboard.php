@@ -31,29 +31,52 @@ $students = $stmt->fetchAll();
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) {
     $date = $_POST['date'];
     $attendance = $_POST['attendance'];
-    $success = true;
-    
+    // $success = true;
+    $user_id = $_SESSION['user_id']; // Get current logged-in user's ID
+    $attendanceUpdated = false; // Flag to track if any attendance is updated
+
     foreach ($attendance as $student_id => $status) {
-        // Check if attendance already exists for this student on this date
-        $check_stmt = $pdo->prepare("SELECT id FROM attendance WHERE student_id = ? AND date = ?");
+        // Check if attendance already exists
+        $check_stmt = $pdo->prepare("SELECT id, status FROM attendance WHERE student_id = ? AND date = ?");
         $check_stmt->execute([$student_id, $date]);
         $existing_record = $check_stmt->fetch();
-        
+
         if ($existing_record) {
-            // Update existing record
-            $stmt = $pdo->prepare("UPDATE attendance SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $existing_record['id']]);
+            $attendance_id = $existing_record['id'];
+            $old_status = $existing_record['status'];
+
+            // Only update if status has changed
+            if ($old_status !== $status) {
+                // Update attendance record
+                $stmt = $pdo->prepare("UPDATE attendance SET status = ?, user_id = ? WHERE id = ?");
+                $stmt->execute([$status, $user_id, $attendance_id]);
+
+                // Log the change
+                $log_stmt = $pdo->prepare("INSERT INTO attendance_log (attendance_id, user_id, old_status, new_status) VALUES (?, ?, ?, ?)");
+                $log_stmt->execute([$attendance_id, $user_id, $old_status, $status]);
+
+                $attendanceUpdated = true; // Set the flag to true if an update was made
+            }
         } else {
-            // Insert new record
-            $stmt = $pdo->prepare("INSERT INTO attendance (student_id, date, status) VALUES (?, ?, ?)");
-            $stmt->execute([$student_id, $date, $status]);
+            // Insert new attendance record
+            $stmt = $pdo->prepare("INSERT INTO attendance (student_id, date, status, user_id) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$student_id, $date, $status, $user_id]);
+
+            // Optionally log creation as well (with NULL old status)
+            $attendance_id = $pdo->lastInsertId();
+            $log_stmt = $pdo->prepare("INSERT INTO attendance_log (attendance_id, user_id, old_status, new_status) VALUES (?, ?, NULL, ?)");
+            $log_stmt->execute([$attendance_id, $user_id, $status]);
         }
     }
-    
-    if ($success) {
+
+    // Set success message based on whether attendance was updated or recorded
+    if ($attendanceUpdated) {
+        $_SESSION['message'] = "Attendance updated successfully!";
+    } else {
         $_SESSION['message'] = "Attendance recorded successfully!";
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -71,9 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) 
             <h1>Attendance Management System</h1>
             <div class="user-info">
                 <span>Welcome, <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?></span>
-                <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
-                    <a href="admin_dashboard.php" class="btn">Admin Dashboard</a>
-                <?php endif; ?>
                 <a href="logout.php" class="btn">Logout</a>
             </div>
         </div>
@@ -90,10 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) 
         <div class="navigation">
             <a href="dashboard.php" class="nav-btn active">Take Attendance</a>
             <a href="attendance_report.php" class="nav-btn">View Reports</a>
-            <a href="manage_students.php" class="nav-btn">Manage Students</a>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
-                <a href="manage_teachers.php" class="nav-btn">Manage Teachers</a>
-            <?php endif; ?>
         </div>
         
         <div class="attendance-form">
@@ -133,4 +149,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) 
         </div>
     </div>
 </body>
-</html> 
+</html>

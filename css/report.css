@@ -11,7 +11,40 @@
   width: 200px;
 }
 
-.back-link {
+.header {
+  display: flex;
+  justify-content: space-between; /* This ensures the space is distributed between elements */
+  align-items: center; /* Vertically center the items */
+  width: 100%; /* Ensure it spans the full width */
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adds space between the items */
+  margin-left: auto; /* This pushes the user info section to the right */
+}
+
+.user-info span {
+  font-size: 1.2rem;
+}
+
+.user-info .btn {
+  padding: 10px;
+  text-decoration: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.user-info .btn:hover {
+  background-color: #0056b3;
+}
+
+
+
+/* .back-link {
   display: inline-block;
   margin-bottom: 20px;
   color: #007bff;
@@ -20,4 +53,4 @@
 
 .back-link:hover {
   text-decoration: underline;
-}
+} */

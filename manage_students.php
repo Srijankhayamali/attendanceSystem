@@ -71,7 +71,9 @@ $students = $stmt->fetchAll();
             <h1>Manage Students</h1>
             <div class="user-info">
                 <span>Welcome, <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?></span>
-                <a href="dashboard.php" class="btn">Back to Dashboard</a>
+                <!-- <a href="dashboard.php" class="btn">Back to Dashboard</a> -->
+                <a href="<?php echo ($_SESSION['role'] === 'admin') ? 'admin_dashboard.php' : 'teacher_dashboard.php'; ?>" class="btn">Back to Dashboard</a>
+
                 <a href="logout.php" class="btn">Logout</a>
             </div>
         </div>

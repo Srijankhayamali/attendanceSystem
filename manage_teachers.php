@@ -76,7 +76,7 @@ $teachers = $stmt->fetchAll();
             <h1>Manage Teachers</h1>
             <div class="user-info">
                 <span>Welcome, <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'User'; ?></span>
-                <a href="dashboard.php" class="btn">Back to Dashboard</a>
+                <a href="admin_dashboard.php" class="btn">Back to Dashboard</a>
                 <a href="logout.php" class="btn">Logout</a>
             </div>
         </div>
