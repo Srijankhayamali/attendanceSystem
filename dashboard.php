@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) 
         <?php endif; ?>
         
         <div class="navigation">
-            <a href="dashboard.php" class="nav-btn active">Take Attendance</a>
+            <a href="student_details.php" class="nav-btn">Student Details</a>
             <a href="attendance_report.php" class="nav-btn">View Reports</a>
         </div>
         

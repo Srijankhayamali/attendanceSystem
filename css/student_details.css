@@ -1,0 +1,29 @@
+.student-list {
+    margin-top: 30px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.student-list h2 {
+    margin-bottom: 20px;
+}
+
+.student-list table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.student-list th, .student-list td {
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+.student-list th {
+    background-color: #f0f0f0;
+}
+
+.student-list tr:nth-child(even) {
+    background-color: #f9f9f9;
+}

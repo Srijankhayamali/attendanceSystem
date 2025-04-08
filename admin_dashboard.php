@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) 
             <h1>Admin Dashboard</h1>
             <div class="user-info">
                 <span>Welcome, <?php echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Admin'; ?></span>
-                <a href="admin_dashboard.php" class="btn">Admin Dashboard</a>
+                <!-- <a href="admin_dashboard.php" class="btn">Admin Dashboard</a> -->
                 <a href="logout.php" class="btn">Logout</a>
             </div>
         </div>
@@ -103,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) 
         <div class="navigation">
             <!-- <a href="dashboard.php" class="nav-btn active">Take Attendance</a> -->
             <a href="attendance_report.php" class="nav-btn">View Reports</a>
+            <a href="student_details.php" class="nav-btn">Student Details</a>
             <a href="manage_students.php" class="nav-btn">Manage Students</a>
             <a href="manage_teachers.php" class="nav-btn">Manage Teachers</a>
         </div>
