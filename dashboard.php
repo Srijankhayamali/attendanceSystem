@@ -23,15 +23,18 @@ if (!isset($_SESSION['username']) && isset($_SESSION['user_id'])) {
     }
 }
 
-// Get all students
-$stmt = $pdo->query("SELECT * FROM students ORDER BY name");
+// Handle semester selection
+$semester = isset($_GET['semester']) ? $_GET['semester'] : '1st Semester'; // Default to 1st Semester
+
+// Get all students for the selected semester
+$stmt = $pdo->prepare("SELECT * FROM students WHERE class = ? ORDER BY name");
+$stmt->execute([$semester]);
 $students = $stmt->fetchAll();
 
 // Handle attendance submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) {
     $date = $_POST['date'];
     $attendance = $_POST['attendance'];
-    // $success = true;
     $user_id = $_SESSION['user_id']; // Get current logged-in user's ID
     $attendanceUpdated = false; // Flag to track if any attendance is updated
 
@@ -110,6 +113,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_attendance'])) 
         <div class="navigation">
             <a href="student_details.php" class="nav-btn">Student Details</a>
             <a href="attendance_report.php" class="nav-btn">View Reports</a>
+        </div>
+        
+        <div class="semester-selection">
+            <h2>Select Semester</h2>
+            <form method="GET">
+                <select name="semester" onchange="this.form.submit()">
+                    <option value="1st Semester" <?php echo $semester == '1st Semester' ? 'selected' : ''; ?>>1st Semester</option>
+                    <option value="2nd Semester" <?php echo $semester == '2nd Semester' ? 'selected' : ''; ?>>2nd Semester</option>
+                    <option value="3rd Semester" <?php echo $semester == '3rd Semester' ? 'selected' : ''; ?>>3rd Semester</option>
+                    <option value="4th Semester" <?php echo $semester == '4th Semester' ? 'selected' : ''; ?>>4th Semester</option>
+                    <option value="5th Semester" <?php echo $semester == '5th Semester' ? 'selected' : ''; ?>>5th Semester</option>
+                    <option value="6th Semester" <?php echo $semester == '6th Semester' ? 'selected' : ''; ?>>6th Semester</option>
+                    <option value="7th Semester" <?php echo $semester == '7th Semester' ? 'selected' : ''; ?>>7th Semester</option>
+                    <option value="8th Semester" <?php echo $semester == '8th Semester' ? 'selected' : ''; ?>>8th Semester</option>
+                </select>
+            </form>
         </div>
         
         <div class="attendance-form">

@@ -8,22 +8,24 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Fetch username if not already stored
+// Fetch username and role if not already stored
 if (!isset($_SESSION['username']) && isset($_SESSION['user_id'])) {
-    $stmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT username, role FROM users WHERE id = ?");
     $stmt->execute([$_SESSION['user_id']]);
     $user = $stmt->fetch();
     if ($user) {
         $_SESSION['username'] = $user['username'];
+        $_SESSION['role'] = $user['role']; // Store the role in session
     }
 }
 
-// Default to current month and year if not selected
+// Get the selected class, month, and year
+$selectedClass = isset($_GET['class']) ? $_GET['class'] : '';
 $selectedMonth = isset($_GET['month']) ? $_GET['month'] : date('m');
 $selectedYear = isset($_GET['year']) ? $_GET['year'] : date('Y');
 
-// Fetch students and count present days in the selected month
-$stmt = $pdo->prepare("
+// Modify the query to include a condition for class
+$sql = "
     SELECT s.*, 
            COUNT(a.id) AS days_present
     FROM students s
@@ -31,12 +33,33 @@ $stmt = $pdo->prepare("
         ON s.id = a.student_id 
         AND a.status = 'present'
         AND MONTH(a.date) = ? 
-        AND YEAR(a.date) = ?
-    GROUP BY s.id
-    ORDER BY s.name
-");
-$stmt->execute([$selectedMonth, $selectedYear]);
+        AND YEAR(a.date) = ? 
+";
+
+// If a class is selected, add the condition to the query
+if (!empty($selectedClass)) {
+    $sql .= " WHERE s.class = ? ";
+} else {
+    $sql .= " WHERE 1 ";  // Include this line to fetch all classes when no class is selected
+}
+
+$sql .= " GROUP BY s.id
+          ORDER BY s.class, s.name";  // Sort by class first, then by name
+
+$stmt = $pdo->prepare($sql);
+
+// Execute the query with the appropriate parameters
+if (!empty($selectedClass)) {
+    $stmt->execute([$selectedMonth, $selectedYear, $selectedClass]);
+} else {
+    $stmt->execute([$selectedMonth, $selectedYear]);
+}
+
 $students = $stmt->fetchAll();
+
+// Get available classes (semesters)
+$classStmt = $pdo->query("SELECT DISTINCT class FROM students ORDER BY class");
+$classes = $classStmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -58,15 +81,29 @@ $students = $stmt->fetchAll();
         </div>
 
         <div class="navigation">
-            <a href="dashboard.php" class="nav-btn">Take Attendance</a>
+            <a href="dashboard.php" class="nav-btn">Dashboard</a>
             <a href="attendance_report.php" class="nav-btn">View Reports</a>
             <a href="student_details.php" class="nav-btn active">Student Details</a>
+            <?php if ($_SESSION['role'] === 'admin'): ?>
+                <a href="manage_students.php" class="nav-btn">Manage Students</a>
+                <a href="manage_teachers.php" class="nav-btn">Manage Teachers</a>
+            <?php endif; ?>
         </div>
 
         <div class="student-list">
             <h2>Student Attendance Summary</h2>
 
             <form method="GET" class="filter-form">
+                <label for="class">Select Class (Semester):</label>
+                <select name="class" id="class">
+                    <option value="">All Classes</option>
+                    <?php foreach ($classes as $class): ?>
+                        <option value="<?php echo htmlspecialchars($class['class']); ?>" <?php echo ($class['class'] == $selectedClass) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($class['class']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+
                 <label for="month">Select Month:</label>
                 <select name="month" id="month">
                     <?php
@@ -98,6 +135,7 @@ $students = $stmt->fetchAll();
                         <th>Name</th>
                         <th>Roll Number</th>
                         <th>Email</th>
+                        <th>Class (Semester)</th>
                         <th>Days Present (<?php echo date("F Y", strtotime("$selectedYear-$selectedMonth-01")); ?>)</th>
                     </tr>
                 </thead>
@@ -107,6 +145,7 @@ $students = $stmt->fetchAll();
                             <td><?php echo htmlspecialchars($student['name']); ?></td>
                             <td><?php echo htmlspecialchars($student['roll_number']); ?></td>
                             <td><?php echo htmlspecialchars($student['email']); ?></td>
+                            <td><?php echo htmlspecialchars($student['class']); ?></td>
                             <td><?php echo $student['days_present']; ?></td>
                         </tr>
                     <?php endforeach; ?>
